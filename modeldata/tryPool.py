@@ -27,7 +27,7 @@ InitialDataRes = pd.DataFrame.join(InitialDataRes, InitialResLabels.loc[:,['inst
 
 InitialData = pd.concat([InitialDataRand, InitialDataRes]).reset_index(drop=True)
 #InitialData.reset_index(inplace = True)
-#InitialData.to_csv('originalCondAllData.csv')
+InitialData.to_csv('originalCondAllData.csv')
 
 
 

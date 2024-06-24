@@ -105,6 +105,27 @@ def retTheta(la,lb, pomegarel, Pratio: list):
 
     return np.mod(theta, 2*np.pi)
 
+def calcTheta(la,lb,pomegarel, val):
+    theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
+    return np.mod(theta, 2*np.pi)
+
+def getval( Pratio: list):
+    maxorder = 5
+    delta = 0.03
+    minperiodratio = Pratio-delta
+    maxperiodratio = Pratio+delta # too many resonances close to 1
+    res = resonant_period_ratios(minperiodratio,maxperiodratio, order=maxorder)
+    val = [10000000,10]
+    for i,each in enumerate(res):
+        if np.abs((each[0]/each[1])-Pratio)<np.abs((val[0]/val[1])-Pratio):
+            #which = i
+            
+            val = each
+    
+    
+
+    return val
+
 
 def get_data(sim, Nint, Nout):
     '''gets dataframe '''
@@ -143,21 +164,47 @@ def get_data(sim, Nint, Nout):
 
     Pratio12 = 1/np.median(p2p1)
     Pratio32 = 1/np.median(p3p2)
+    pval12 = getval(Pratio12)
+    pval32 = getval(Pratio32)
     #print(pomegarel12)
     for x in range(Nout):
-        theta12[x]=retTheta(l1[x],l2[x],pomegarel12[x],Pratio12)
-        theta23[x]=retTheta(l2[x],l3[x],pomegarel23[x],Pratio32)
+        theta12[x]=calcTheta(l1[x],l2[x],pomegarel12[x],pval12)
+        theta23[x]=calcTheta(l2[x],l3[x],pomegarel23[x],pval32)
     
     data=pd.DataFrame({'time':times,'p2/p1':p2p1,'p3/p2':p3p2,'theta12':theta12,'theta23':theta23,'e1':e1,'e2':e2,'e3':e3})
     return data
 
 
-def plot_data(sim,Nout,Nint):
-    data = get_data(sim,Nout,Nint)
-    data.plot.scatter(x="p2/p1", y="p3/p2",s=2, c="time", colormap="copper", alpha=.5)
-    data.plot.scatter(x="time", y="theta12",figsize=(14,7),s=1)
-    data.plot.scatter(x="time", y="theta23",figsize=(14,7),s=1)
-    # data.plot.scatter(x="time", y="rat",figsize=(14,7),s=1)
+# def plot_data(sim,Nout,Nint):
+#     data = get_data(sim,Nout,Nint)
+#     data.plot.scatter(x="p2/p1", y="p3/p2",s=2, c="time", colormap="copper", alpha=.5)
+#     data.plot.scatter(x="time", y="theta12",figsize=(14,7),s=1)
+#     data.plot.scatter(x="time", y="theta23",figsize=(14,7),s=1)
+#     # data.plot.scatter(x="time", y="rat",figsize=(14,7),s=1)
 
-    data.plot(x='time',y=['e1','e2','e3'],figsize=(14,7))
-    rebound.OrbitPlot(sim)
+#     data.plot(x='time',y=['e1','e2','e3'],figsize=(14,7))
+#     rebound.OrbitPlot(sim)
+
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+def plot_data(sim,Nout,Nint):
+    figure = plt.figure(figsize=[20,35])
+    gs = GridSpec(4, 2, figure=figure)
+    #gs.update(wspace = .1, hspace = .1)
+    
+    data = get_data(sim,Nout,Nint)
+    ax1 = plt.subplot(gs[0,0])
+    data.plot.scatter(ax = ax1,x="p2/p1", y="p3/p2",s=2, c="time", colormap="copper", alpha=.5)
+    ax2 = plt.subplot(gs[1,:2])
+    data.plot.scatter(ax=ax2,x="time", y="theta12",s=1)
+    ax3 = plt.subplot(gs[2,:2])
+    data.plot.scatter(ax = ax3,x="time", y="theta23",s=1)
+    ax4 = plt.subplot(gs[3,:2])
+    data.plot(ax=ax4,x='time',y=['e1','e2','e3'])
+    ax5 = plt.subplot(gs[0,1])
+    ax5.set_aspect('equal')
+    rebound.OrbitPlot(sim,fig=figure, ax=ax5,ylim=[-3,3],xlim=[-3,3])
+
+    return figure
+
+    

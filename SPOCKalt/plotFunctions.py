@@ -109,11 +109,20 @@ def calcTheta(la,lb,pomegarel, val):
     theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
     return np.mod(theta, 2*np.pi)
 
+def calcThetaMod2(la,lb,pomegarel, val):
+    theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
+    return np.mod(theta, 2*np.pi)
+def calcThetaMod1(la,lb,pomegarel, val):
+    theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
+    return np.mod(np.mod(theta, 2*np.pi)-np.pi,2*np.pi)
+
 def getval( Pratio: list):
     maxorder = 5
     delta = 0.03
     minperiodratio = Pratio-delta
     maxperiodratio = Pratio+delta # too many resonances close to 1
+    if maxperiodratio >.999:
+        maxperiodratio =.999
     res = resonant_period_ratios(minperiodratio,maxperiodratio, order=maxorder)
     val = [10000000,10]
     for i,each in enumerate(res):
@@ -172,7 +181,7 @@ def get_data(sim, Nint, Nout):
         theta23[x]=calcTheta(l2[x],l3[x],pomegarel23[x],pval32)
     
     data=pd.DataFrame({'time':times,'p2/p1':p2p1,'p3/p2':p3p2,'theta12':theta12,'theta23':theta23,'e1':e1,'e2':e2,'e3':e3})
-    return data
+    return data,pval12,pval32
 
 
 # def plot_data(sim,Nout,Nint):

@@ -3,6 +3,7 @@ import numpy as np
 from celmech.nbody_simulation_utilities import set_time_step,align_simulation
 from celmech.nbody_simulation_utilities import get_simarchive_integration_results
 from celmech.disturbing_function import laplace_b
+import plotFunctions
 
 import firstOrder3BRfill as fff
 class Trio:
@@ -17,36 +18,44 @@ class Trio:
         self.runningList['time']=[]
         self.runningList['MEGNO']=[]
         self.runningList['threeBRfill']=[]
-        for each in ['near','far','outer']:
-            self.runningList['EM'+each]=[]
-            self.runningList['EP'+each]=[]
-            self.runningList['MMRstrength'+each]=[]
-            self.runningList['twoMMRstrength'+each]=[]
-            self.runningList['MMRstrengthW'+each]=[]
-            self.runningList['MMRinWid'+each]=[]
-            self.runningList['twoMMRstrengthW'+each]=[]
-            self.runningList['twoMMRinWid'+each]=[]
+        # for each in ['near','far','outer']:
+        #     self.runningList['EM'+each]=[]
+        #     self.runningList['EP'+each]=[]
+        #     self.runningList['MMRstrength'+each]=[]
+        #     self.runningList['twoMMRstrength'+each]=[]
+        #     self.runningList['MMRstrengthW'+each]=[]
+        #     self.runningList['MMRinWid'+each]=[]
+        #     self.runningList['twoMMRstrengthW'+each]=[]
+        #     self.runningList['twoMMRinWid'+each]=[]
+        
+        self.runningList['nearPrat']=[]
+        self.runningList['nearl1']=[]
+        self.runningList['nearl2']=[]
+        self.runningList['pomega12']=[]
+
     #returned features
         self.features = OrderedDict()
 
-        for each in ['near','far','outer']:
-            self.features['EMcross'+each]= np.nan
-            self.features['EMfracstd'+each]= np.nan
-            self.features['EPstd'+each]= np.nan
-            self.features['MMRstrength'+each]= np.nan
-            self.features['twoMMRstrength'+each]= np.nan
-            self.features['MMRinWid'+each]=np.nan
-            self.features['MMRstrengthW'+each]=np.nan
-            self.features['MMRstrengthWMAX'+each]=np.nan
-            self.features['twoMMRinWid'+each]=np.nan
-            self.features['twoMMRstrengthW'+each]=np.nan
-            self.features['twoMMRstrengthWMAX'+each]=np.nan
+        # for each in ['near','far','outer']:
+        #     self.features['EMcross'+each]= np.nan
+        #     self.features['EMfracstd'+each]= np.nan
+        #     self.features['EPstd'+each]= np.nan
+        #     self.features['MMRstrength'+each]= np.nan
+        #     self.features['twoMMRstrength'+each]= np.nan
+        #     self.features['MMRinWid'+each]=np.nan
+        #     self.features['MMRstrengthW'+each]=np.nan
+        #     self.features['MMRstrengthWMAX'+each]=np.nan
+        #     self.features['twoMMRinWid'+each]=np.nan
+        #     self.features['twoMMRstrengthW'+each]=np.nan
+        #     self.features['twoMMRstrengthWMAX'+each]=np.nan
 
         self.features['MEGNO']= np.nan
         self.features['MEGNOstd']= np.nan
         self.features['threeBRfillfac']= np.nan
         self.features['threeBRfillstd']= np.nan
         self.features['chiSec'] = np.nan
+        self.features['nearThetaSTD'] = np.nan
+
 
     def fillVal(self, Nout):
         '''fills with nan values
@@ -67,25 +76,32 @@ class Trio:
         '''
         ps = sim.particles
         
-        for q, [label, i1, i2] in enumerate(pairs):
-            m1 = ps[i1].m
-            m2 = ps[i2].m
-            e1x, e1y = ps[i1].e*np.cos(ps[i1].pomega), ps[i1].e*np.sin(ps[i1].pomega)
-            e2x, e2y = ps[i2].e*np.cos(ps[i2].pomega), ps[i2].e*np.sin(ps[i2].pomega)
-            self.runningList['time'][i]= sim.t/minP
-            self.runningList['EM'+label][i]= np.sqrt((e2x-e1x)**2 + (e2y-e1y)**2)
-            self.runningList['EP'+label][i] = np.sqrt((m1*e1x + m2*e2x)**2 + (m1*e1y + m2*e2y)**2)/(m1+m2)
-            MMRs = find_strongest_MMR(sim, i1, i2)
-            self.runningList['MMRstrength'+label][i] = MMRs[2]
-            self.runningList['twoMMRstrength'+label][i] = MMRs[6]
-            MMRW = MMRwidth(sim, MMRs[3], i1,i2)
-            self.runningList['MMRstrengthW'+label][i]=MMRW[0]
-            self.runningList['MMRinWid'+label][i]=MMRW[1]
-            MMRWtwo = MMRwidth(sim, MMRs[7], i1,i2)
-            self.runningList['twoMMRstrengthW'+label][i]=MMRWtwo[0]
-            self.runningList['twoMMRinWid'+label][i]=MMRWtwo[1]
+        # for q, [label, i1, i2] in enumerate(pairs):
+        #     m1 = ps[i1].m
+        #     m2 = ps[i2].m
+        #     e1x, e1y = ps[i1].e*np.cos(ps[i1].pomega), ps[i1].e*np.sin(ps[i1].pomega)
+        #     e2x, e2y = ps[i2].e*np.cos(ps[i2].pomega), ps[i2].e*np.sin(ps[i2].pomega)
+        #     self.runningList['time'][i]= sim.t/minP
+        #     self.runningList['EM'+label][i]= np.sqrt((e2x-e1x)**2 + (e2y-e1y)**2)
+        #     self.runningList['EP'+label][i] = np.sqrt((m1*e1x + m2*e2x)**2 + (m1*e1y + m2*e2y)**2)/(m1+m2)
+        #     MMRs = find_strongest_MMR(sim, i1, i2)
+        #     self.runningList['MMRstrength'+label][i] = MMRs[2]
+        #     self.runningList['twoMMRstrength'+label][i] = MMRs[6]
+        #     MMRW = MMRwidth(sim, MMRs[3], i1,i2)
+        #     self.runningList['MMRstrengthW'+label][i]=MMRW[0]
+        #     self.runningList['MMRinWid'+label][i]=MMRW[1]
+        #     MMRWtwo = MMRwidth(sim, MMRs[7], i1,i2)
+        #     self.runningList['twoMMRstrengthW'+label][i]=MMRWtwo[0]
+        #     self.runningList['twoMMRinWid'+label][i]=MMRWtwo[1]
         self.runningList['threeBRfill'][i]= threeBRFillFac(sim, trio)
-        self.runningList['MEGNO'][i]= sim.megno() 
+        self.runningList['MEGNO'][i]= sim.megno()
+        i1 = pairs[0][1]
+        i2 = pairs[0][2]
+
+        self.runningList['nearPrat'][i]= ps[i1].P/ps[i2].P
+        self.runningList['nearl1'][i]=ps[i1].l
+        self.runningList['nearl2'][i]=ps[i2].l
+        self.runningList['pomega12'][i]=plotFunctions.getPomega(sim,i1,i2)
 
     def startingFeatures(self, sim, pairs):
         '''used to initialize/add to the features that only depend on initial conditions'''
@@ -140,19 +156,29 @@ class Trio:
         self.features['threeBRfillstd']= np.std(self.runningList['threeBRfill'])
 
 
-        for label in ['near', 'far', 'outer']: #would need to remove outer here
-            self.features['MMRstrength'+label] = np.median(self.runningList['MMRstrength'+label])
-            self.features['twoMMRstrength'+label]= np.median(self.runningList['twoMMRstrength'+label])
-            self.features['EMfracstd'+label]= np.std(self.runningList['EM'+label])/ self.features['EMcross'+label]
-            self.features['EPstd'+label]= np.std(self.runningList['EP'+label])
-            self.features['MMRstrengthW'+label]=np.median(self.runningList['MMRstrengthW'+label])
-            self.features['MMRstrengthWMAX'+label]=max(self.runningList['MMRstrengthW'+label])
-            self.features['twoMMRstrengthW'+label]=np.median(self.runningList['twoMMRstrengthW'+label])
-            self.features['twoMMRstrengthWMAX'+label]=max(self.runningList['twoMMRstrengthW'+label])
-            self.features['MMRinWid'+label]=np.median(self.runningList['MMRinWid'+label])
-            self.features['twoMMRinWid'+label]=np.median(self.runningList['twoMMRinWid'+label])
-       
+        # for label in ['near', 'far', 'outer']: #would need to remove outer here
+        #     self.features['MMRstrength'+label] = np.median(self.runningList['MMRstrength'+label])
+        #     self.features['twoMMRstrength'+label]= np.median(self.runningList['twoMMRstrength'+label])
+        #     self.features['EMfracstd'+label]= np.std(self.runningList['EM'+label])/ self.features['EMcross'+label]
+        #     self.features['EPstd'+label]= np.std(self.runningList['EP'+label])
+        #     self.features['MMRstrengthW'+label]=np.median(self.runningList['MMRstrengthW'+label])
+        #     self.features['MMRstrengthWMAX'+label]=max(self.runningList['MMRstrengthW'+label])
+        #     self.features['twoMMRstrengthW'+label]=np.median(self.runningList['twoMMRstrengthW'+label])
+        #     self.features['twoMMRstrengthWMAX'+label]=max(self.runningList['twoMMRstrengthW'+label])
+        #     self.features['MMRinWid'+label]=np.median(self.runningList['MMRinWid'+label])
+        #     self.features['twoMMRinWid'+label]=np.median(self.runningList['twoMMRinWid'+label])
 
+        try:
+            temp = plotFunctions.getval(np.median(self.runningList['nearPrat']))
+            thetalist1 = [np.nan]*Nout
+            thetalist2 = [np.nan]*Nout
+            for x in range(Nout):
+                thetalist1[x]=plotFunctions.calcThetaMod1(self.runningList['nearl1'][x],self.runningList['nearl2'][x],self.runningList['pomega12'][x],temp)
+                thetalist2[x]=plotFunctions.calcThetaMod2(self.runningList['nearl1'][x],self.runningList['nearl2'][x],self.runningList['pomega12'][x],temp)
+            
+            self.features['nearThetaSTD'] = min([np.std(thetalist1),np.std(thetalist2)])
+        except:
+            self.features['nearThetaSTD'] = np.nan
 
 
 class initialTrio:

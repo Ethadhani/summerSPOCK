@@ -180,6 +180,8 @@ def get_data(sim, Nint, Nout):
         theta12[x]=calcTheta(l1[x],l2[x],pomegarel12[x],pval12)
         theta23[x]=calcTheta(l2[x],l3[x],pomegarel23[x],pval32)
     
+
+
     data=pd.DataFrame({'time':times,'p2/p1':p2p1,'p3/p2':p3p2,'theta12':theta12,'theta23':theta23,'e1':e1,'e2':e2,'e3':e3})
     return data,pval12,pval32
 

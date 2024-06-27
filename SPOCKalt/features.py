@@ -55,6 +55,8 @@ class Trio:
         self.features['threeBRfillstd']= np.nan
         self.features['chiSec'] = np.nan
         self.features['nearThetaSTD'] = np.nan
+        self.features['p2/1'] = np.nan
+        self.features['p3/2'] = np.nan
 
 
     def fillVal(self, Nout):
@@ -130,6 +132,8 @@ class Trio:
         mu = (ps[3].m-ps[1].m)/(ps[1].m+ps[3].m)
         chi23 = (1+eta)**3 *(3-eta)*(1+mu)
         chi12 = (1-eta)**3 *(3+eta)*(1-mu)
+        self.features['p2/1'] = ps[2].P/ps[1].P
+        self.features['p3/2'] = ps[3].P/ps[2].P
 
         self.features['chiSec']= chi12/(chi23+chi12)
 
@@ -176,7 +180,8 @@ class Trio:
                 thetalist1[x]=plotFunctions.calcThetaMod1(self.runningList['nearl1'][x],self.runningList['nearl2'][x],self.runningList['pomega12'][x],temp)
                 thetalist2[x]=plotFunctions.calcThetaMod2(self.runningList['nearl1'][x],self.runningList['nearl2'][x],self.runningList['pomega12'][x],temp)
             
-            self.features['nearThetaSTD'] = min([np.std(thetalist1),np.std(thetalist2)])
+            self.features['nearThetaSTD'] = min([np.std(np.unwrap(thetalist1)),np.std(np.unwrap(thetalist2))])
+            #self.features['nearThetaSTD'] = np.std(thetalist2)
         except:
             self.features['nearThetaSTD'] = np.nan
 

@@ -109,12 +109,12 @@ def calcTheta(la,lb,pomegarel, val):
     theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
     return np.mod(theta, 2*np.pi)
 
-def calcThetaMod2(la,lb,pomegarel, val):
-    theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
-    return np.mod(theta, 2*np.pi)
-def calcThetaMod1(la,lb,pomegarel, val):
-    theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
-    return np.mod(np.mod(theta, 2*np.pi)-np.pi,2*np.pi)
+# def calcThetaMod2(la,lb,pomegarel, val):
+#     theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
+#     return np.mod(theta, 2*np.pi)
+# def calcThetaMod1(la,lb,pomegarel, val):
+#     theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
+#     return np.mod(np.mod(theta, 2*np.pi)-np.pi,2*np.pi)
 
 def getval( Pratio: list):
     maxorder = 5

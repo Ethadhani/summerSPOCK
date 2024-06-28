@@ -97,7 +97,7 @@ if __name__ == "__main__":  # confirms that the code is under main function
         new = list(p.map(runInt, datalist))
     # test = list(map(runInt, bound))
     # print(test)
-    sheetname = 'tryThetaSTDunwrap'
+    sheetname = 'trydifOrdSTD'
     #print(bound)
     pd.concat(new).to_csv(sheetname+'.csv')
     new = pd.read_csv(sheetname+'.csv').set_index('index').sort_index()

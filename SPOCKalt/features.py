@@ -103,7 +103,7 @@ class Trio:
         self.runningList['nearPrat'][i]= ps[i1].P/ps[i2].P
         self.runningList['nearl1'][i]=ps[i1].l
         self.runningList['nearl2'][i]=ps[i2].l
-        self.runningList['pomega12'][i]=plotFunctions.getPomega(sim,i1,i2)
+        self.runningList['pomega12'][i]=getPomega(sim,i1,i2)
 
     def startingFeatures(self, sim, pairs):
         '''used to initialize/add to the features that only depend on initial conditions'''
@@ -173,18 +173,43 @@ class Trio:
         #     self.features['twoMMRinWid'+label]=np.median(self.runningList['twoMMRinWid'+label])
 
         try:
-            temp = plotFunctions.getval(np.median(self.runningList['nearPrat']))
-            thetalist1 = [np.nan]*Nout
-            thetalist2 = [np.nan]*Nout
-            for x in range(Nout):
-                thetalist1[x]=plotFunctions.calcThetaMod1(self.runningList['nearl1'][x],self.runningList['nearl2'][x],self.runningList['pomega12'][x],temp)
-                thetalist2[x]=plotFunctions.calcThetaMod2(self.runningList['nearl1'][x],self.runningList['nearl2'][x],self.runningList['pomega12'][x],temp)
+            OrderL=[1,2,3,4,5]
+            ratList = getRatL(np.median(self.runningList['nearPrat']),OrderL)
+            thetalist = [[np.nan]*Nout]*len(ratList)
             
-            self.features['nearThetaSTD'] = min([np.std(np.unwrap(thetalist1)),np.std(np.unwrap(thetalist2))])
+            for i,r in enumerate(ratList):
+                for x in range(Nout):
+                    thetalist[i][x]=calcTheta(self.runningList['nearl1'][x],self.runningList['nearl2'][x],self.runningList['pomega12'][x],r)
+                thetalist[i]= np.unwrap(thetalist[i])
+            
+            stds = list(map(np.std, thetalist))
+            which = stds.index(min(stds))
+            
+            
+
+            self.features['nearThetaSTD'] = min(stds)
             #self.features['nearThetaSTD'] = np.std(thetalist2)
         except:
             self.features['nearThetaSTD'] = np.nan
 
+
+# Pratio23 = 1/np.median(p3p2)
+#     OrderL=[1,2,3,4,5]
+#     rat12 = getRatL(Pratio12,OrderL)
+#     thetalist12 = [[np.nan]*Nout]*len(rat12)
+#     #print(len(thetalist12[0]))
+#     for i,r in enumerate(rat12):
+#         for x in range(Nout):
+#                 #
+#                 # print(r)
+#                 thetalist12[i][x]=plotFunctions.calcTheta(l1[x],l2[x],pomegarel12[x],r)
+#         #print(thetalist12[i])
+#         thetalist12[i]= np.unwrap(thetalist12[i])
+    
+#     stds12 = list(map(np.std,thetalist12))
+#     which12 = stds12.index(min(stds12))
+#     theta12 = thetalist12[which12]
+#     pval12 = rat12[which12]
 
 class initialTrio:
     def __init__(self):
@@ -302,6 +327,50 @@ class initialTrio:
             self.features['w'+str(x)] = ps[x].omega
             self.features['m'+str(x)] = ps[x].m
 
+def getRatL( Pratio: list,orderL):
+    maxorder = max(orderL)
+    delta = 0.03
+    minperiodratio = Pratio-delta
+    maxperiodratio = Pratio+delta # too many resonances close to 1
+    if maxperiodratio >.999:
+        maxperiodratio =.999
+    res = plotFunctions.resonant_period_ratios(minperiodratio,maxperiodratio, order=maxorder)
+    resList = [[]]*len(orderL)
+    
+    for each in res:
+        resList[each[1]-each[0]-1] = resList[each[1]-each[0]-1]+[each]
+    finals = []
+    for eachO in resList:
+        if len(eachO) !=0:
+            val = [10000000,10]
+            for i,each in enumerate(eachO):
+                if np.abs((each[0]/each[1])-Pratio)<np.abs((val[0]/val[1])-Pratio):
+                    val = each
+            finals.append(val)
+    return finals
+
+#if len(eachO) !=0:
+            # val = [10000000,10]
+            # for i,each in enumerate(eachO):
+            #     if np.abs((each[0]/each[1])-Pratio)<np.abs((val[0]/val[1])-Pratio):
+            #         val = each
+            # finals.append(val)
+
+
+
+
+
+def calcTheta(la,lb,pomegarel, val):
+    theta = (val[1]*lb) -(val[0]*la)-(val[1]-val[0])*pomegarel
+    return np.mod(theta, 2*np.pi)
+
+def getPomega(sim, i1, i2):
+    ps = sim.particles
+    evec2 = ps[i2].e*np.exp(1j*ps[i2].pomega)
+    evec1 = ps[i1].e*np.exp(1j*ps[i1].pomega)
+    erel = evec2-evec1
+    pomegarel=np.angle(erel)
+    return pomegarel
 
 
 def fillMaxWidth(obj:initialTrio,sim, trio,data):

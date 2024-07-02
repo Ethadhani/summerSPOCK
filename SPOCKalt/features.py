@@ -4,6 +4,7 @@ from celmech.nbody_simulation_utilities import set_time_step,align_simulation
 from celmech.nbody_simulation_utilities import get_simarchive_integration_results
 from celmech.disturbing_function import laplace_b
 import plotFunctions
+import math
 
 import firstOrder3BRfill as fff
 class Trio:
@@ -28,10 +29,14 @@ class Trio:
         #     self.runningList['twoMMRstrengthW'+each]=[]
         #     self.runningList['twoMMRinWid'+each]=[]
         
-        self.runningList['nearPrat']=[]
-        self.runningList['nearl1']=[]
-        self.runningList['nearl2']=[]
+        
+        self.runningList['Prat12']=[]
+        self.runningList['l1']=[]
+        self.runningList['l2']=[]
         self.runningList['pomega12']=[]
+        self.runningList['Prat23']=[]
+        self.runningList['l3']=[]
+        self.runningList['pomega23']=[]
 
     #returned features
         self.features = OrderedDict()
@@ -54,9 +59,11 @@ class Trio:
         self.features['threeBRfillfac']= np.nan
         self.features['threeBRfillstd']= np.nan
         self.features['chiSec'] = np.nan
-        self.features['nearThetaSTD'] = np.nan
+        self.features['ThetaSTD'] = np.nan
         self.features['p2/1'] = np.nan
         self.features['p3/2'] = np.nan
+        self.features['logInstT3BR']=np.nan
+        
 
 
     def fillVal(self, Nout):
@@ -97,13 +104,16 @@ class Trio:
         #     self.runningList['twoMMRinWid'+label][i]=MMRWtwo[1]
         self.runningList['threeBRfill'][i]= threeBRFillFac(sim, trio)
         self.runningList['MEGNO'][i]= sim.megno()
-        i1 = pairs[0][1]
-        i2 = pairs[0][2]
+        
 
-        self.runningList['nearPrat'][i]= ps[i1].P/ps[i2].P
-        self.runningList['nearl1'][i]=ps[i1].l
-        self.runningList['nearl2'][i]=ps[i2].l
-        self.runningList['pomega12'][i]=getPomega(sim,i1,i2)
+        self.runningList['Prat12'][i]= ps[1].P/ps[2].P
+        self.runningList['Prat23'][i]= ps[2].P/ps[3].P
+        self.runningList['l1'][i]=ps[1].l
+        self.runningList['l2'][i]=ps[2].l
+        self.runningList['l3'][i]=ps[3].l
+        self.runningList['pomega12'][i]=getPomega(sim,1,2)
+        self.runningList['pomega23'][i]=getPomega(sim,2,3)
+
 
     def startingFeatures(self, sim, pairs):
         '''used to initialize/add to the features that only depend on initial conditions'''
@@ -136,6 +146,48 @@ class Trio:
         self.features['p3/2'] = ps[3].P/ps[2].P
 
         self.features['chiSec']= chi12/(chi23+chi12)
+
+        trio = [1,2,3]
+        b0, b1,b2,b3 = ps[0], ps[trio[0]], ps[trio[1]], ps[trio[2]]
+        m0,m1,m2,m3 = b0.m,b1.m,b2.m,b3.m
+        ptot = None
+
+        #semim
+        a12 =(b1.a/b2.a)
+        a23 = (b2.a/b3.a)
+
+        #equation 43
+        d12 = 1- a12
+        d23 = 1- a23
+
+        #equation 45
+        d = (d12*d23)/(d12+d23)
+
+        #equation 19
+        mu12 = b1.P/b2.P
+        mu23 = b2.P/b3.P
+
+        #equation 21
+        eta = (mu12*(1-mu23))/(1-(mu12*mu23))
+
+        #equation 53
+        eMpow2 = (m1*m3 + m2*m3*(a12**(-2))+m1*m2*(a23**2)*((1-eta)**2))/(m0**2)
+
+        #equation 59
+        dov = ((42.9025)*(eMpow2)*(eta*((1-eta)**3)))**(0.125)
+
+        #equation 60
+
+        ptot = (dov/d)**4
+        ptot = abs(ptot)
+
+        p1 = -np.log10((16*(2**.5)*(3.47)*math.sqrt(eMpow2*eta*(1-eta)))/3)
+        p2 = np.log10((ptot**(-1.5))*(1/(1-(ptot**(-1)))))
+        p3 = math.sqrt(-np.log(1-(ptot**(-1))))
+
+        self.features['logInstT3BR']=p1+p2+p3
+
+
 
 
     
@@ -172,14 +224,22 @@ class Trio:
         #     self.features['MMRinWid'+label]=np.median(self.runningList['MMRinWid'+label])
         #     self.features['twoMMRinWid'+label]=np.median(self.runningList['twoMMRinWid'+label])
 
+        self.features['ThetaSTD'] = min([self.getThetaSTD('1','2',Nout),self.getThetaSTD('2','3',Nout)])
+
+        
+            
+
+
+    def getThetaSTD(self,b1,b2,Nout):
+
         try:
             OrderL=[1,2,3,4,5]
-            ratList = getRatL(np.median(self.runningList['nearPrat']),OrderL)
+            ratList = getRatL(np.median(self.runningList['Prat'+b1+b2]),OrderL)
             thetalist = [[np.nan]*Nout]*len(ratList)
             
             for i,r in enumerate(ratList):
                 for x in range(Nout):
-                    thetalist[i][x]=calcTheta(self.runningList['nearl1'][x],self.runningList['nearl2'][x],self.runningList['pomega12'][x],r)
+                    thetalist[i][x]=calcTheta(self.runningList['l'+b1][x],self.runningList['l'+b2][x],self.runningList['pomega'+b1+b2][x],r)
                 thetalist[i]= np.unwrap(thetalist[i])
             
             stds = list(map(np.std, thetalist))
@@ -187,11 +247,11 @@ class Trio:
             
             
 
-            self.features['nearThetaSTD'] = min(stds)
+            return  min(stds)
+        
             #self.features['nearThetaSTD'] = np.std(thetalist2)
         except:
-            self.features['nearThetaSTD'] = np.nan
-
+            return np.nan
 
 # Pratio23 = 1/np.median(p3p2)
 #     OrderL=[1,2,3,4,5]

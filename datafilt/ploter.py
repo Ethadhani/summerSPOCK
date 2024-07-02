@@ -1,5 +1,11 @@
 import numpy as np
 import rebound
+import sys
+#Intigration/simsetup.py
+#import SPOCKalt
+sys.path.insert(1, '..')
+#print(path)
+from SPOCKalt import *
 sys.path.insert(1, '../SPOCKalt')
 #Intigration/simsetup.py
 from SPOCKalt import featureKlassifier
@@ -69,7 +75,8 @@ def get_data(sim, Nint, Nout):
 
     Pratio12 = 1/np.median(p2p1)
     Pratio23 = 1/np.median(p3p2)
-    OrderL=[1,2,3,4,5]
+    OrderL = range(1,11)
+    #OrderL=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,]
     rat12 = getRatL(Pratio12,OrderL)
     thetalist12 = [[np.nan]*Nout]*len(rat12)
     #print(len(thetalist12[0]))
@@ -110,7 +117,11 @@ def get_data(sim, Nint, Nout):
     data=pd.DataFrame({'time':times,'p2/p1':p2p1,'p3/p2':p3p2,'theta12':theta12,'theta23':theta23,'e1':e1,'e2':e2,'e3':e3})
     return data,pval12,pval23
 
+import pandas as pd
 
+
+initial = pd.read_csv('../modeldata/originalCondAllData.csv')
+dataset = pd.read_csv('../modeldata/trydifOrdSTD.csv')
 
 
 import matplotlib.pyplot as plt
@@ -121,16 +132,20 @@ def get_plot(num,Nout=5000,Nint=100000):
     figure = plt.figure(figsize=[20,35])
     gs = GridSpec(4, 2, figure=figure)
     #gs.update(wspace = .1, hspace = .1)
+    ps = sim.particles
+    et12 = np.abs((ps[2].e*np.exp(1j*ps[2].pomega))-(ps[1].e*np.exp(1j*ps[1].pomega)))/((ps[2].a-ps[1].a)/ps[2].a)
+    et23 = np.abs((ps[3].e*np.exp(1j*ps[3].pomega))-(ps[2].e*np.exp(1j*ps[2].pomega)))/((ps[3].a-ps[2].a)/ps[3].a)
+
     
     data, res12, res23 = get_data(sim,Nout,Nint)
     ax1 = plt.subplot(gs[0,0])
     ax1.set_title('threeBRfillfac:' +str(dataset['threeBRfillfac'][num]))
     data.plot.scatter(ax = ax1,x="p2/p1", y="p3/p2",s=2, c="time", colormap="copper", alpha=.35)
     ax2 = plt.subplot(gs[1,:2])
-    ax2.set_title(str(res12[1])+':'+str(res12[0]))
+    ax2.set_title(str(res12[1])+':'+str(res12[0])+'   fracOfCross:'+str(et12))
     data.plot.scatter(ax=ax2,x="time", y="theta12",s=1)
     ax3 = plt.subplot(gs[2,:2])
-    ax3.set_title(str(res23[1])+':'+str(res23[0]))
+    ax3.set_title(str(res23[1])+':'+str(res23[0])+'   fracOfCross:'+str(et23))
     data.plot.scatter(ax = ax3,x="time", y="theta23",s=1)
     ax4 = plt.subplot(gs[3,:2])
     data.plot(ax=ax4,x='time',y=['e1','e2','e3'])
@@ -138,5 +153,33 @@ def get_plot(num,Nout=5000,Nint=100000):
     ax5.set_title(str(num))
     ax5.set_aspect('equal')
     rebound.OrbitPlot(sim,fig=figure, ax=ax5,ylim=[-3,3],xlim=[-3,3])
-    #plt.savefig(f'imgs/'+str(dataset['threeBRfillfac'][num])+'.png')
+    #plt.savefig(f'imgs/'+str(num)+'h.png')
     #plt.show(False)
+
+
+def insimPlot(sim,Nout=5000,Nint=100000):
+    simsetup.init_sim_parameters(sim)
+    figure = plt.figure(figsize=[20,35])
+    gs = GridSpec(4, 2, figure=figure)
+    #gs.update(wspace = .1, hspace = .1)
+    ps = sim.particles
+    et12 = np.abs((ps[2].e*np.exp(1j*ps[2].pomega))-(ps[1].e*np.exp(1j*ps[1].pomega)))/((ps[2].a-ps[1].a)/ps[2].a)
+    et23 = np.abs((ps[3].e*np.exp(1j*ps[3].pomega))-(ps[2].e*np.exp(1j*ps[2].pomega)))/((ps[3].a-ps[2].a)/ps[3].a)
+
+    
+    data, res12, res23 = get_data(sim,Nout,Nint)
+    ax1 = plt.subplot(gs[0,0])
+    #ax1.set_title('threeBRfillfac:' +str(dataset['threeBRfillfac'][num]))
+    data.plot.scatter(ax = ax1,x="p2/p1", y="p3/p2",s=2, c="time", colormap="copper", alpha=.35)
+    ax2 = plt.subplot(gs[1,:2])
+    ax2.set_title(str(res12[1])+':'+str(res12[0])+'   fracOfCross:'+str(et12))
+    data.plot.scatter(ax=ax2,x="time", y="theta12",s=1)
+    ax3 = plt.subplot(gs[2,:2])
+    ax3.set_title(str(res23[1])+':'+str(res23[0])+'   fracOfCross:'+str(et23))
+    data.plot.scatter(ax = ax3,x="time", y="theta23",s=1)
+    ax4 = plt.subplot(gs[3,:2])
+    data.plot(ax=ax4,x='time',y=['e1','e2','e3'])
+    ax5 = plt.subplot(gs[0,1])
+    #ax5.set_title(str(num))
+    ax5.set_aspect('equal')
+    rebound.OrbitPlot(sim,fig=figure, ax=ax5,ylim=[-1,1],xlim=[-1,1])

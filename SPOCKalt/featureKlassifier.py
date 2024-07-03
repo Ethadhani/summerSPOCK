@@ -50,8 +50,8 @@ class FeatureClassifier:
             return:  returns a list of the simulations features/short term stability'''
         #tseries, stable = get_tseries(sim, args)
 
-        Norbits = 2e3 #number of orbits for short intigration, usually 10000
-        Nout = 1000 #number of data collections spaced throughought, usually 80
+        Norbits = 1e3 #number of orbits for short intigration, usually 10000
+        Nout = 300 #number of data collections spaced throughought, usually 80
 
         if isinstance(sim, rebound.Simulation):
             sim = [sim]

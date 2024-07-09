@@ -51,10 +51,11 @@ class Trio:
             self.features['MMRstrengthWMAX'+each]=np.nan
             self.features['twoMMRstrengthW'+each]=np.nan
             self.features['twoMMRstrengthWMAX'+each]=np.nan
-
+#self.features['3BRfirstfillfac']= fff.getfirst3brfill(sim,trio)
         self.features['MEGNO']= np.nan
         self.features['MEGNOstd']= np.nan
         self.features['threeBRfillfac']= np.nan
+        self.features['3Bfirstfillfac']= np.nan
         self.features['threeBRfillstd']= np.nan
         self.features['chiSec'] = np.nan
         self.features['ThetaSTD'] = np.nan
@@ -123,6 +124,8 @@ class Trio:
 
     def startingFeatures(self, sim, pairs):
         '''used to initialize/add to the features that only depend on initial conditions'''
+
+
         
         #only applies to one
         ps  = sim.particles
@@ -199,6 +202,8 @@ class Trio:
         self.features['Zcrit12']=getZcrit(sim,1,2)
         self.features['Zval23']=np.abs(v23/math.sqrt(2))
         self.features['Zcrit23']=getZcrit(sim,2,3)
+        #print(fff.getfirst3brfill(sim,[1,2,3]))
+        self.features['3BRfirstfillfac']= fff.getfirst3brfill(sim,[1,2,3])
 
 
 

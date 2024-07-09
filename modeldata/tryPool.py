@@ -93,11 +93,11 @@ if __name__ == "__main__":  # confirms that the code is under main function
     #138543
     
     #bound = test = np.linspace(0, 138543, num=138544, endpoint=True, retstep=False, dtype=int, axis=0)
-    with Pool() as p:
+    with Pool(61) as p:
         new = list(p.map(runInt, datalist))
     # test = list(map(runInt, bound))
     # print(test)
-    sheetname = 'AllFeatMod'
+    sheetname = 'AllFeatLonger'
     #print(bound)
     pd.concat(new).to_csv(sheetname+'.csv')
     new = pd.read_csv(sheetname+'.csv').set_index('index').sort_index()

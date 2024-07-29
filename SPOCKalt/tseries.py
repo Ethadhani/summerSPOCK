@@ -58,10 +58,10 @@ def get_tseries(sim, args):
         #fills triopairs with each pair, and fills triotseries with the Trio class 
         #eachpair = get_pairs(sim, trio)
         #triopairs.append(eachpair)
-        triotseries.append(features.Trio())
+        triotseries.append(features.Trio(get_pairs(sim,trio)))
         triotseries[tr].fillVal(Nout)
         #print(trio)
-        triotseries[tr].startingFeatures(sim, get_pairs(sim,trio)) #puts in the valeus that depend on initial cond
+        triotseries[tr].startingFeatures(sim) #puts in the valeus that depend on initial cond
         #triotseries will be a list of the objects that have all the data and Trio
     
     fail = False
@@ -81,7 +81,7 @@ def get_tseries(sim, args):
         for tr, trio in enumerate(trios):
             #populates data for each trio
             #print(trio)
-            triotseries[tr].populateData( sim, trio, get_pairs(sim,trio), minP,i)
+            triotseries[tr].populateData( sim, trio, minP,i)
     
     if fail == False:
         stable = True

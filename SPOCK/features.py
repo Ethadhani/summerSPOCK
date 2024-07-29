@@ -145,7 +145,7 @@ def resonant_period_ratios(min_per_ratio,max_per_ratio,order):
 ####################################################
 def find_strongest_MMR(sim, i1, i2):
     #originally 2, trying with 5th order now
-    maxorder = 5
+    maxorder = 2
     ps = sim.particles
     n1 = ps[i1].n
     n2 = ps[i2].n
@@ -190,10 +190,10 @@ def find_strongest_MMR(sim, i1, i2):
                 maxstrength, maxstrength2 = swap(maxstrength, maxstrength2)
     
 
-    # if maxstrength == 0:
-    #     maxstrength = np.nan
-    # if maxstrength2 == 0:
-    #     maxstrength2 = np.nan
+    if maxstrength == 0:
+        maxstrength = np.nan
+    if maxstrength2 == 0:
+        maxstrength2 = np.nan
 
     return j, k, maxstrength, res1, j2, k2, maxstrength2, res2, res
 #############################################

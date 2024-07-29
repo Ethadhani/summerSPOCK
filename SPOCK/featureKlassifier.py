@@ -1,8 +1,8 @@
 import simsetup
 import features
-import tseries
+import ClassifierSeries as ClassifierSeries
 from features import *
-from tseries import *
+from ClassifierSeries import *
 from simsetup import *
 import sys
 import pandas as pd
@@ -44,7 +44,11 @@ class FeatureClassifier:
     
     def generate_features(self, sim):
         '''helper function to fit spock syntex standard'''
-        return self.simToData(sim)
+        data = self.simToData(sim)
+        if len(data)==1:
+            return data[0]
+        else:
+            return data
 
 
     
@@ -91,7 +95,7 @@ class FeatureClassifier:
         
         '''
 
-        triotseries, stable = tseries.get_tseries(sim, args) #runs the intigration on the simulation, and returns the filled objects for each trio and short stability
+        triotseries, stable = ClassifierSeries.get_tseries(sim, args) #runs the intigration on the simulation, and returns the filled objects for each trio and short stability
         #calculate final vals
 
        

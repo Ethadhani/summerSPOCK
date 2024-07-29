@@ -51,7 +51,7 @@ class FeatureClassifier:
         #tseries, stable = get_tseries(sim, args)
 
         Norbits = 1e4 #number of orbits for short intigration, usually 10000
-        Nout = 1000 #number of data collections spaced throughought, usually 80
+        Nout = 500 #number of data collections spaced throughought, usually 80
 
         if isinstance(sim, rebound.Simulation):
             sim = [sim]

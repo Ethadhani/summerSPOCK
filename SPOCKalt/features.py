@@ -8,13 +8,14 @@ import math
 
 import firstOrder3BRfill as fff
 class Trio:
-    def __init__(self):
+    def __init__(self, pairs):
         '''initializes new set of features.
         
             each list of the key is the series of data points, second dict is for final features
         
         '''
     #innitialize running list 
+        self.pairs =pairs
         self.runningList = OrderedDict()
         self.runningList['time']=[]
         self.runningList['MEGNO']=[]
@@ -85,14 +86,14 @@ class Trio:
         '''returns number of features collected as ran'''
         return len(self.runningList.keys())
 
-    def populateData(self, sim, trio, pairs, minP,i):
+    def populateData(self, sim, trio, minP,i):
         '''populates the runningList data dictionary for one time step.
         
             user must specify how each is calculated and added
         '''
         ps = sim.particles
         
-        for q, [label, i1, i2] in enumerate(pairs):
+        for q, [label, i1, i2] in enumerate(self.pairs):
             m1 = ps[i1].m
             m2 = ps[i2].m
             e1x, e1y = ps[i1].e*np.cos(ps[i1].pomega), ps[i1].e*np.sin(ps[i1].pomega)
@@ -122,14 +123,14 @@ class Trio:
         self.runningList['erel23'][i]=(ps[3].e*np.exp(1j*ps[3].pomega))-(ps[2].e*np.exp(1j*ps[2].pomega))
 
 
-    def startingFeatures(self, sim, pairs):
+    def startingFeatures(self, sim):
         '''used to initialize/add to the features that only depend on initial conditions'''
 
 
         
         #only applies to one
         ps  = sim.particles
-        for [label, i1, i2] in pairs:
+        for [label, i1, i2] in self.pairs:
             self.features['EMcross'+label] =  (ps[i2].a-ps[i1].a)/ps[i1].a
         
 
@@ -432,7 +433,7 @@ def getZcrit(sim, i1, i2):
     m2 = p2.m/ps[0].m
     exp = -2.2*((m1+m2)**(1/3))*((p2.a/(p2.a-p1.a))**(4/3))
 
-    return t1**exp
+    return t1* (math.e**exp)
 
 
 def getRatL( Pratio: list,orderL):
